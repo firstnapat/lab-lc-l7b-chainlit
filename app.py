@@ -1,4 +1,4 @@
-from langchain.chat_models import ChatOpenAI
+from langchain_openai import ChatOpenAI
 from langchain.prompts import ChatPromptTemplate
 from langchain.schema import StrOutputParser
 from langchain.schema.runnable import Runnable
@@ -12,9 +12,20 @@ load_dotenv()
 
 
 @cl.on_chat_start
-async def on_chat_start():
-    # TODO: write logic codes
-    pass
+def on_chat_start():
+    model = ChatOpenAI(model="gpt-3.5-turbo", streaming=True)
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            (
+                "system",
+                "You will be provided with statements, and your task is to convert them to standard English. Using fancy words. Ensure that the language used meets the standards required for an IELTS score of 8.0.",
+            ),
+            ("human", "{question}"),
+        ]
+    )
+
+    runnable = prompt | model | StrOutputParser()
+    cl.user_session.set("runnable", runnable)
 
 
 @cl.on_message
